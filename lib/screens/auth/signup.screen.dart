@@ -1,8 +1,10 @@
-// ignore_for_file: use_key_in_widget_constructors, library_private_types_in_public_api, prefer_final_fields, avoid_print, unnecessary_null_comparison, unused_field
+// ignore_for_file: use_key_in_widget_constructors, library_private_types_in_public_api, prefer_final_fields, avoid_print, unnecessary_null_comparison, unused_field, use_build_context_synchronously, library_prefixes, unnecessary_cast
 
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' as FirebaseAuth;
 import 'package:flutter/material.dart';
 import 'package:messaging_app/services/auth.service.dart';
+import 'package:messaging_app/services/user.service.dart';
+import 'package:messaging_app/models/user.model.dart';
 
 class SignupScreen extends StatefulWidget {
   @override
@@ -19,19 +21,27 @@ class _SignupScreenState extends State<SignupScreen> {
 
   Future<void> signupUser(BuildContext context) async {
     try {
-      UserCredential userCredential = AuthService().registerWithEmail(
+      FirebaseAuth.UserCredential userCredential =
+          await AuthService().registerWithEmail(
         _emailController.text,
         _passwordController.text,
         _nameController.text,
         _lastNameController.text,
-      ) as UserCredential;
+      );
 
       if (userCredential.user != null) {
+        String idUser = userCredential.user!.uid;
+        User newUser = User(
+          idUser: idUser,
+          name: _nameController.text,
+          lastName: _lastNameController.text,
+        );
+        await UserService().createUser(newUser);
         Navigator.pushReplacementNamed(context, '/chat');
       } else {
         print('Utilisateur non trouvé');
       }
-    } on FirebaseAuthException catch (error) {
+    } on FirebaseAuth.FirebaseAuthException catch (error) {
       if (error.code == 'weak-password') {
         print('Le mot de passe est trop faible.');
       } else if (error.code == 'email-already-in-use') {

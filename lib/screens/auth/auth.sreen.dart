@@ -20,14 +20,12 @@ class AuthScreen extends StatelessWidget {
                     ConnectionState.waiting) {
                   return const CircularProgressIndicator(); // or any loading indicator
                 } else {
-                  return ChatScreen();
+                  return const ChatScreen();
                 }
               },
               future: null,
             );
-          }
-          // user is not logged in
-          else {
+          } else {
             return LoginScreen();
           }
         },
