@@ -15,7 +15,7 @@ class LoginScreen extends StatelessWidget {
         passwordController.text,
       );
 
-      if (userCredential != null) {
+      if (userCredential.user != null) {
         Navigator.pushReplacementNamed(context, '/chat');
       } else {
         print('Utilisateur non trouvé');
