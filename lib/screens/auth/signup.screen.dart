@@ -13,15 +13,19 @@ class _SignupScreenState extends State<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
   TextEditingController _emailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
+  TextEditingController _nameController = TextEditingController();
+  TextEditingController _lastNameController = TextEditingController();
 
   Future<void> signupUser(BuildContext context) async {
     try {
-      User user = AuthService().signUpWithEmailAndPassword(
+      UserCredential userCredential = AuthService().registerWithEmail(
         _emailController.text,
         _passwordController.text,
-      ) as User;
+        _nameController.text,
+        _lastNameController.text,
+      ) as UserCredential;
 
-      if (user != null) {
+      if (userCredential.user != null) {
         Navigator.pushReplacementNamed(context, '/chat');
       } else {
         print('Utilisateur non trouvé');
@@ -50,6 +54,30 @@ class _SignupScreenState extends State<SignupScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              TextFormField(
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Name',
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your name';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _lastNameController,
+                decoration: const InputDecoration(
+                  labelText: 'Last name',
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your last name';
+                  }
+                  return null;
+                },
+              ),
               TextFormField(
                 controller: _emailController,
                 decoration: const InputDecoration(

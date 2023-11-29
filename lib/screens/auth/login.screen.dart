@@ -1,4 +1,4 @@
-// ignore_for_file: use_key_in_widget_constructors, avoid_print, nullable_type_in_catch_clause, unnecessary_null_comparison
+// ignore_for_file: use_key_in_widget_constructors, avoid_print, nullable_type_in_catch_clause, unnecessary_null_comparison, use_build_context_synchronously
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -10,12 +10,12 @@ class LoginScreen extends StatelessWidget {
 
   Future<void> loginUser(BuildContext context) async {
     try {
-      User user = AuthService().signInWithEmailAndPassword(
+      UserCredential userCredential = await AuthService().signInWithEmail(
         emailController.text,
         passwordController.text,
-      ) as User;
+      );
 
-      if (user != null) {
+      if (userCredential != null) {
         Navigator.pushReplacementNamed(context, '/chat');
       } else {
         print('Utilisateur non trouvé');
@@ -57,15 +57,14 @@ class LoginScreen extends StatelessWidget {
             const SizedBox(height: 16.0),
             ElevatedButton(
               onPressed: () {
-                print('Email: ${emailController.text}');
-                print('Password: ${passwordController.text}');
+                loginUser(context);
               },
               child: const Text('Login'),
             ),
             const SizedBox(height: 16.0),
             TextButton(
               onPressed: () {
-                loginUser(context);
+                Navigator.pushReplacementNamed(context, '/signup');
               },
               child: const Text('Signup'),
             ),
