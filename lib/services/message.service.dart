@@ -10,11 +10,13 @@ class MessageService {
     return messages;
   }
 
-  Future<void> sendMessage(String newMessage, String idUser) async {
+  Future<void> sendMessage(String newMessage, String senderId,
+      String senderFirstName, String lastName) async {
     DocumentReference documentReference =
         await _firestore.collection('messages').add({
-      'senderId': idUser,
+      'senderId': senderId,
       'content': newMessage,
+      'senderName': '$senderFirstName $lastName',
       'timestamp': DateTime.now(),
     });
     String messageId = documentReference.id;

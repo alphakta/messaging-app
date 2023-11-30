@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print
+// ignore_for_file: avoid_print, avoid_returning_null_for_void
 
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -20,8 +20,7 @@ class AuthService {
         email: email, password: password);
   }
 
-  // Déconnexion
-  Future signOut() async {
+  Future<void> signOut() async {
     try {
       return await _auth.signOut();
     } catch (error) {

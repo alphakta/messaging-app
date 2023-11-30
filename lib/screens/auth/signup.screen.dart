@@ -18,9 +18,14 @@ class _SignupScreenState extends State<SignupScreen> {
   TextEditingController _nameController = TextEditingController();
   TextEditingController _lastNameController = TextEditingController();
   bool _isPasswordHidden = true;
+  bool _isLoading = false;
 
   Future<void> signupUser(BuildContext context) async {
     try {
+      setState(() {
+        _isLoading = true;
+      });
+
       FirebaseAuth.UserCredential userCredential =
           await AuthService().registerWithEmail(
         _emailController.text,
@@ -33,7 +38,7 @@ class _SignupScreenState extends State<SignupScreen> {
         String idUser = userCredential.user!.uid;
         User newUser = User(
           idUser: idUser,
-          name: _nameController.text,
+          firstName: _nameController.text,
           lastName: _lastNameController.text,
         );
         await UserService().createUser(newUser);
@@ -49,6 +54,10 @@ class _SignupScreenState extends State<SignupScreen> {
       }
     } catch (error) {
       print(error.toString());
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -128,14 +137,16 @@ class _SignupScreenState extends State<SignupScreen> {
                     signupUser(context);
                   }
                 },
-                child: const Text('Signup'),
+                child: _isLoading
+                    ? const CircularProgressIndicator()
+                    : const Text('Signup'),
               ),
               const SizedBox(height: 16.0),
               TextButton(
                 onPressed: () {
                   Navigator.pushReplacementNamed(context, '/login');
                 },
-                child: const Text('Login'),
+                child: const Text('Already have an account ? Login.'),
               ),
             ],
           ),

@@ -1,10 +1,15 @@
-// ignore_for_file: use_key_in_widget_constructors, avoid_unnecessary_containers, unused_local_variable, library_private_types_in_public_api, unnecessary_null_comparison, unused_field
+// ignore_for_file: library_private_types_in_public_api, prefer_final_fields, unnecessary_this
 
 import 'package:flutter/material.dart';
 import 'package:messaging_app/models/user.model.dart';
+import 'package:messaging_app/screens/chat/widgets/message_bubble.widget.dart';
+import 'package:messaging_app/screens/chat/widgets/welcome.widget.dart';
 import 'package:messaging_app/services/auth.service.dart';
 import 'package:messaging_app/services/message.service.dart';
 import 'package:messaging_app/services/user.service.dart';
+import 'package:messaging_app/models/message.model.dart';
+import 'package:messaging_app/provider/firebase.provider.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({Key? key}) : super(key: key);
@@ -14,8 +19,9 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  User? _user;
+  User? user;
   TextEditingController messageController = TextEditingController();
+  ItemScrollController itemScrollController = ItemScrollController();
 
   @override
   void initState() {
@@ -26,43 +32,75 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _setUserData() async {
     String? idUser = AuthService().getCurrentUserUID();
     final user = await UserService().getUserById(idUser!);
-    setState(() {
-      _user = user;
-    });
+
+    if (mounted) {
+      setState(() {
+        this.user = user;
+      });
+    }
   }
 
-  void sendMessage() {
+  void sendMessage() async {
     String newMessage = messageController.text;
     if (newMessage.isNotEmpty) {
-      MessageService().sendMessage(newMessage, _user!.idUser);
-      messageController.clear();
+      await MessageService().sendMessage(
+        newMessage,
+        this.user!.idUser,
+        this.user!.firstName,
+        this.user!.lastName,
+      );
     }
+    messageController.clear();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Chat'),
+        title: const Text('Chat général'),
+        automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () {
+              AuthService().signOut();
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                '/',
+                (route) => false,
+              );
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
+          const WelcomeMessageWidget(),
           Expanded(
-            child: FutureBuilder(
-              future: MessageService().getMessages(),
+            child: StreamBuilder<List<Message>>(
+              stream: FirebaseProvider().messagesStream,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 } else if (snapshot.hasError) {
                   return const Center(
-                      child: Text('Erreur de chargement des messages.'));
+                    child: Text('Erreur de chargement des messages.'),
+                  );
                 } else {
-                  List<String> messages = snapshot.data as List<String>;
-                  return ListView.builder(
+                  List<Message> messages = snapshot.data ?? [];
+
+                  return ScrollablePositionedList.builder(
+                    itemScrollController: itemScrollController,
+                    reverse: true,
                     itemCount: messages.length,
                     itemBuilder: (context, index) {
-                      return ListTile(
-                        title: Text(messages[index]),
+                      Message message = messages[index];
+                      bool isUserMessage =
+                          message.senderId == this.user?.idUser;
+
+                      return MessageBubble(
+                        message: message,
+                        isUserMessage: isUserMessage,
                       );
                     },
                   );
@@ -86,6 +124,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   icon: const Icon(Icons.send),
                   onPressed: () {
                     sendMessage();
+                    itemScrollController.jumpTo(index: 0);
                   },
                 ),
               ],

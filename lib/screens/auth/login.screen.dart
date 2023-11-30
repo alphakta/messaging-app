@@ -12,10 +12,15 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  bool _isPasswordHidden = true;
+  bool isPasswordHidden = true;
+  bool isLoading = false;
 
   Future<void> loginUser(BuildContext context) async {
     try {
+      setState(() {
+        isLoading = true;
+      });
+
       UserCredential userCredential = await AuthService().signInWithEmail(
         _emailController.text,
         _passwordController.text,
@@ -32,6 +37,10 @@ class _LoginScreenState extends State<LoginScreen> {
       } else if (error.code == 'wrong-password') {
         print('Mot de passe incorrect.');
       }
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
@@ -54,17 +63,17 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             const SizedBox(height: 16.0),
             TextField(
-              obscureText: _isPasswordHidden,
+              obscureText: isPasswordHidden,
               controller: _passwordController,
               decoration: InputDecoration(
                 labelText: 'Password',
                 suffixIcon: IconButton(
                   icon: Icon(
-                    _isPasswordHidden ? Icons.visibility_off : Icons.visibility,
+                    isPasswordHidden ? Icons.visibility_off : Icons.visibility,
                   ),
                   onPressed: () {
                     setState(() {
-                      _isPasswordHidden = !_isPasswordHidden;
+                      isPasswordHidden = !isPasswordHidden;
                     });
                   },
                 ),
@@ -75,14 +84,16 @@ class _LoginScreenState extends State<LoginScreen> {
               onPressed: () {
                 loginUser(context);
               },
-              child: const Text('Login'),
+              child: isLoading
+                  ? const CircularProgressIndicator()
+                  : const Text('Login'),
             ),
             const SizedBox(height: 16.0),
             TextButton(
               onPressed: () {
                 Navigator.pushReplacementNamed(context, '/signup');
               },
-              child: const Text('Signup'),
+              child: const Text('No have an account ? Sign up.'),
             ),
           ],
         ),

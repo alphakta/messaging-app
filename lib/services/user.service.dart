@@ -13,7 +13,7 @@ class UserService {
     DocumentSnapshot userDoc = await userCollection.doc(userID).get();
     return User(
       idUser: userDoc['idUser'],
-      name: userDoc['name'],
+      firstName: userDoc['firstName'],
       lastName: userDoc['lastName'],
     );
   }
